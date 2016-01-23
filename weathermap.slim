@@ -1,0 +1,106 @@
+/ REQUIRED LOCALS: date_start, date_end stats
+ruby:
+  def rgb_color(lines, max = 1000)
+    return "rgb(238, 238, 238)" if lines == nil || lines == 0
+
+    pr = [214, 30]
+    pg = [230, 104]
+    pb = [133, 35]
+
+    grade = lines.to_f/max
+    grade = 1 if grade > 1
+
+    red = (pr[0] - (pr[0]-pr[1]) * grade).to_i
+    green = (pg[0] - (pg[0]-pg[1]) * grade).to_i
+    blue = (pb[0] - (pb[0]-pb[1]) * grade).to_i
+
+    return "rgb(#{red}, #{green}, #{blue})"
+  end
+
+  def dow(n)
+    return n - 1 < 0 ? 6 : n - 1
+  end
+
+  months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+  d = date_start
+
+svg.weathermap width="721" height="110"
+  g transform="translate(20,20)"
+    - x_shift = 0
+    - month = -1
+    - while d < date_end
+      - if month != d.month
+        - if d.day < 23
+          text.month y="-5" x=(13*x_shift)
+            = months[d.month-1]
+        - month = d.month
+      g transform=("translate(#{13*x_shift},0)")
+        - week = d.cweek
+        - while week == d.cweek && d < date_end
+          /- changes = stats[d.to_s] ? (stats[d.to_s][:add] || 0) + (stats[d.to_s][:del] || 0) : 0
+          - changes = stats[d.to_s] ? stats[d.to_s][:cc] || 0 : 0
+          - tip = changes > 2 ? "#{changes} commits" : ( changes == 0 ? "No commits" : "1 commit")
+          rect.day width="11" height="11" y=(13*dow(d.wday)) style="fill: #{rgb_color(changes, 10)};" data-tip="<b>#{tip}</b> on #{d.strftime('%b %-d, %Y')}"
+          - d += 1
+        - x_shift += 1
+
+javascript:
+  $(document).ready(function(){
+    var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  
+    $("svg rect.day").mouseenter(function(){
+      var p = $(this).offset();
+      var el = $( "<div id='weathermap-tip'>" + $(this).attr("data-tip") + "</div>" );
+      $("body").append(el);
+  
+      var pleft = p.left - el.outerWidth()/2 + 6;
+      var ptop = p.top - el.outerHeight() - 8;
+      $("#weathermap-tip").attr("style", "left: " + pleft + "px; top: " + ptop + "px");
+    });
+  
+    $("svg rect.day").mouseleave(function(){
+      if ( $("#weathermap-tip").length )
+        $("#weathermap-tip").remove();
+    });
+  });
+
+
+css:
+  svg rect.day {
+    shape-rendering: crispedges;
+  }
+  svg rect.day:hover {
+    stroke-width: 1px;
+    stroke: #555;
+  }
+  #weathermap-tip {
+    background: rgba(0,0,0,0.8);
+    color: #bbb;
+    position: absolute;
+    padding: 8px 10px;
+    font-size: 11px;
+    border-radius: 3px;
+    font-family: Arial;
+    text-align: center;
+    z-index: 99999;
+  }
+  #weathermap-tip:after {
+    box-sizing:border-box;
+    position:absolute;
+    left:50%;
+    height:5px;
+    width:5px;
+    bottom:-10px;
+    margin:0 0 0 -5px;
+    content:" ";
+    border:5px solid transparent;
+    border-top-color:rgba(0,0,0,0.8)
+  }
+  #weathermap-tip b {
+    font-weight: bold;
+  }
+  svg text.month {
+    font-size: 10px;
+    fill: #aaa;
+  }
+
