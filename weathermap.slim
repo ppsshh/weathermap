@@ -39,7 +39,7 @@ svg.weathermap width="721" height="110"
         - while week == d.cweek && d < date_end
           /- changes = stats[d.to_s] ? (stats[d.to_s][:add] || 0) + (stats[d.to_s][:del] || 0) : 0
           - changes = stats[d.to_s] ? stats[d.to_s][:cc] || 0 : 0
-          - tip = changes > 2 ? "#{changes} commits" : ( changes == 0 ? "No commits" : "1 commit")
+          - tip = changes >= 2 ? "#{changes} commits" : ( changes == 0 ? "No commits" : "1 commit")
           rect.day width="11" height="11" y=(13*dow(d.wday)) style="fill: #{rgb_color(changes, 10)};" data-tip="<b>#{tip}</b> on #{d.strftime('%b %-d, %Y')}"
           - d += 1
         - x_shift += 1
