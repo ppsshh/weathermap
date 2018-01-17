@@ -1,4 +1,4 @@
-/ REQUIRED LOCALS: date_start, date_end stats
+/ REQUIRED LOCALS: date_start, date_end, stats
 ruby:
   def rgb_color(lines, max = 1000)
     return "rgb(238, 238, 238)" if lines == nil || lines == 0
@@ -37,8 +37,7 @@ svg.weathermap width="721" height="110"
       g transform=("translate(#{13*x_shift},0)")
         - week = d.cweek
         - while week == d.cweek && d < date_end
-          /- changes = stats[d.to_s] ? (stats[d.to_s][:add] || 0) + (stats[d.to_s][:del] || 0) : 0
-          - changes = stats[d.to_s] ? stats[d.to_s][:cc] || 0 : 0
+          - changes = stats[d.to_s] || 0
           - tip = changes >= 2 ? "#{changes} commits" : ( changes == 0 ? "No commits" : "1 commit")
           rect.day width="11" height="11" y=(13*dow(d.wday)) style="fill: #{rgb_color(changes, 10)};" data-tip="<b>#{tip}</b> on #{d.strftime('%b %-d, %Y')}"
           - d += 1
