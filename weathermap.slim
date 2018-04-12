@@ -21,6 +21,12 @@ ruby:
     return n - 1 < 0 ? 6 : n - 1
   end
 
+  def human_cc(cc)
+    return "No commits" if cc == 0
+    return "1 commit" if cc == 1
+    return "#{cc} commits"
+  end
+
   months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
   d = date_start
 
@@ -37,9 +43,10 @@ svg.weathermap width="721" height="110"
       g transform=("translate(#{13*x_shift},0)")
         - week = d.cweek
         - while week == d.cweek && d < date_end
-          - changes = stats[d.to_s] || 0
-          - tip = changes >= 2 ? "#{changes} commits" : ( changes == 0 ? "No commits" : "1 commit")
-          rect.day width="11" height="11" y=(13*dow(d.wday)) style="fill: #{rgb_color(changes, 10)};" data-tip="<b>#{tip}</b> on #{d.strftime('%b %-d, %Y')}"
+          - changes = stats[d.to_s] ? stats[d.to_s][:cc] : 0
+          - tip = human_cc(changes)
+          - stat_details = stats[d.to_s] ? stats[d.to_s][:details] : ''
+          rect.day width="11" height="11" y=(13*dow(d.wday)) style="fill: #{rgb_color(changes, 10)};" data-tip="<b>#{tip}</b> on #{d.strftime('%b %-d, %Y')}<br>#{stat_details}"
           - d += 1
         - x_shift += 1
 
@@ -47,14 +54,17 @@ javascript:
   $(document).ready(function(){
     var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   
-    $("svg rect.day").mouseenter(function(){
-      var p = $(this).offset();
-      var el = $( "<div id='weathermap-tip'>" + $(this).attr("data-tip") + "</div>" );
-      $("body").append(el);
+    $(document).on('mouseenter', 'svg rect.day', function(){
+      if ( !$("#weathermap-tip").length) {
+        console.log('enter');
+        var p = $(this).offset();
+        var el = $( "<div id='weathermap-tip'>" + $(this).attr("data-tip") + "</div>" );
+        $("body").append(el);
   
-      var pleft = p.left - el.outerWidth()/2 + 6;
-      var ptop = p.top - el.outerHeight() - 8;
-      $("#weathermap-tip").attr("style", "left: " + pleft + "px; top: " + ptop + "px");
+        var pleft = p.left - el.outerWidth()/2 + 6;
+        var ptop = p.top - el.outerHeight() - 8;
+        $("#weathermap-tip").attr("style", "left: " + pleft + "px; top: " + ptop + "px");
+      }
     });
   
     $("svg rect.day").mouseleave(function(){
